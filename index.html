@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Quem pensa por trás da tela?</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"></head><body>
+<main>
+<section id="home" class="frame"><div class="eye">👁</div><div class="orn">❖ ✦ ❖</div>
+<h1>QUEM PENSA<br><b>POR TRÁS</b> DA TELA?</h1><div class="orn">— ✦ —</div>
+<p>O celular pode ser uma janela para o conhecimento ou uma cortina de fumaça sobre o pensamento. Responda 10 dilemas do dia a dia escolar e descubra a tendência de estudo que se esconde atrás da sua tela.</p>
+<p class="sub">Pesquisa, IA, distrações, interpretação e pensamento crítico.</p>
+<input id="nm" type="text" maxlength="40" placeholder="Seu nome ou apelido" autocomplete="off">
+<div class="priv"><b>🕯 Aviso de privacidade (LGPD)</b><br>
+<b>Dados coletados:</b> o nome/apelido que você digitar (use um apelido, sem sobrenome ou dados sensíveis), suas respostas, pontuação, resultado e a data. <b>Finalidade:</b> pesquisa educativa sobre o uso do celular nas escolas. <b>Base legal:</b> seu consentimento (art. 7º, I). <b>Acesso:</b> apenas a pessoa responsável pela pesquisa; outros participantes não veem seus dados. <b>Direitos:</b> pedir acesso, correção ou exclusão a qualquer momento, informando seu identificador ao responsável: <span id="ct"></span>. <b>Menores de 18 anos:</b> participe com autorização de pai, mãe ou responsável (art. 14). Os resultados são tendências educativas, não diagnósticos de inteligência.
+<label><input type="checkbox" id="ok"><span>Li o aviso e consinto com o tratamento dos meus dados.</span></label></div>
+<div class="err" id="err"></div><button class="btn" id="go">COMEÇAR O QUIZ</button></section>
+<section id="quiz" class="frame hide"><div class="cnt" id="cnt"></div><div class="bar"><i id="pb"></i></div>
+<div class="q" id="q"></div><div id="ops"></div>
+<button class="btn ghost" id="bk">◂ VOLTAR</button><button class="btn" id="nx">AVANÇAR ▸</button></section>
+<section id="out" class="frame hide"><div class="cnt" id="who"></div><div class="glyph" id="gl"></div><div class="big" id="rt"></div>
+<div class="quote" id="qt"></div><p id="rd"></p><div class="err" id="sv"></div>
+<div class="orn">❖ ✦ ❖</div><h2>Suas tendências</h2><div id="bars"></div><button class="btn" id="re">REFAZER</button></section>
+<div class="foot">Quiz educativo e reflexivo · tendências, não diagnósticos.</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="decor.js"></script>
+<script>
+const PR=[
+{n:"Aluno Pensante",g:"🕷",f:"Pensar é o seu superpoder.",d:"Você pesquisa, compara fontes e constrói respostas próprias. O celular é ferramenta, não muleta. Siga questionando e ajude os colegas a fazer o mesmo."},
+{n:"Aluno Copia e Cola",g:"📋",f:"Resposta pronta não é aprendizado.",d:"Você prioriza respostas prontas e prefere o caminho mais rápido. Experimente reescrever com suas palavras e conferir de onde veio cada informação: é aí que o aprendizado acontece."},
+{n:"Aluno Ajudinha",g:"🕯",f:"A luz certa, no momento certo.",d:"Você usa ferramentas digitais para esclarecer dúvidas e depois segue por conta própria. É um ótimo equilíbrio. Falta só checar as fontes com mais frequência e comparar respostas."},
+{n:"Aluno que Só Lê",g:"📜",f:"Ler é o começo, interpretar é o caminho.",d:"Você consulta textos e resumos, mas precisa desenvolver a interpretação. Tente explicar o que leu, discordar do autor e criar exemplos seus."},
+{n:"Aluno Meio a Meio",g:"🌗",f:"Metade sua, metade emprestada.",d:"Você combina estratégias próprias e respostas prontas. Há pensamento seu no processo: aumente a parte autoral e marque sempre o que é de outros."}];
+const Q=[
+["Seu professor pede uma pesquisa sobre o aquecimento global. O que você faz?","Comparo várias fontes e escrevo com minhas palavras.","Copio um texto pronto do primeiro site.","Pesquiso e uso uma ferramenta para tirar dúvidas de termos.","Leio dois ou três resumos e junto o que eles dizem.","Escrevo uma parte e completo o resto com respostas prontas."],
+["A IA te entrega uma resposta cheia de números.","Confiro em fontes oficiais antes de usar.","Uso do jeito que veio.","Peço que explique o cálculo e refaço por conta própria.","Leio com atenção, mas não questiono.","Aproveito uma parte e ajusto o restante do meu jeito."],
+["Você precisa interpretar um texto difícil.","Releio, destaco ideias e explico com minhas palavras.","Procuro a interpretação pronta na internet.","Busco o significado das palavras difíceis e então interpreto.","Leio um resumo e me contento com ele.","Interpreto o começo e colo o resto de um resumo."],
+["Chega uma notícia chocante no grupo da turma.","Procuro a fonte original e comparo versões.","Repasso do jeito que chegou.","Pesquiso num site de checagem antes de opinar.","Leio a matéria inteira, mas não confiro outras fontes.","Confiro rápido uma parte e repasso o resto."],
+["Para que você usa o celular em sala?","Para pesquisar e comparar, com regras claras.","Para achar respostas prontas das tarefas.","Para tirar dúvidas pontuais durante a explicação.","Para ler textos e resumos da matéria.","Um pouco para estudar e um pouco para atalhos."],
+["Trabalho em grupo marcado para a semana.","Dividimos tarefas e discutimos o que cada fonte diz.","Juntamos textos prontos e entregamos.","Combinamos e usamos apps para esclarecer dúvidas.","Cada um lê e resume, mas pouco debatemos.","Fazemos uma parte juntos e o resto copiamos."],
+["Um colega tem uma opinião contrária à sua.","Ouço, busco argumentos e reavalio.","Busco uma resposta pronta para rebater.","Pergunto numa ferramenta para entender o outro lado.","Leio sobre o tema, mas repito o que li.","Defendo com um argumento meu e outro pronto."],
+["Prova com consulta liberada.","Consulto para checar meu raciocínio.","Procuro cada resposta pronta.","Esclareço uma dúvida e respondo sozinho.","Releio resumos e marco o que parece certo.","Respondo o que sei e consulto o restante pronto."],
+["Pedem sua opinião num texto.","Formo minha opinião a partir de várias leituras.","Peço um texto de opinião pronto.","Uso ferramentas para organizar minhas ideias.","Parafraseio o que li, sem me posicionar.","Escrevo meu início e completo com trechos prontos."],
+["Pesquisa pronta. Qual o último passo?","Reviso, cito as fontes e confirmo que ficou meu.","Entrego como está.","Peço uma checagem de dúvidas e finalizo por mim.","Entrego um resumo bem lido, sem análise própria.","Entrego parte minha, parte pronta."]];
+const $=i=>document.getElementById(i),sb=supabase.createClient(CFG.url,CFG.key);
+let i=0,ans=[],ord=[],name="";$('ct').textContent=CFG.admin;
+const sh=a=>{for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
+function show(id){['home','quiz','out'].forEach(s=>$(s).classList.toggle('hide',s!=id));scrollTo(0,0)}
+$('go').onclick=()=>{name=$('nm').value.trim();if(!name)return $('err').textContent='Digite um nome ou apelido.';
+if(!$('ok').checked)return $('err').textContent='Aceite o aviso de privacidade para continuar.';
+$('err').textContent='';i=0;ans=[];ord=Q.map(()=>sh([0,1,2,3,4]));show('quiz');draw()};
+function draw(){const q=Q[i];$('cnt').textContent=`Pergunta ${i+1} de 10`;$('pb').style.width=(i+1)*10+'%';$('q').textContent=q[0];$('ops').innerHTML='';
+ord[i].forEach(p=>{const b=document.createElement('button');b.className='opt'+(ans[i]===p?' on':'');b.textContent=q[p+1];b.onclick=()=>{ans[i]=p;draw()};$('ops').appendChild(b)});
+$('bk').disabled=i==0;$('nx').disabled=ans[i]===undefined;$('nx').textContent=i==9?'VER RESULTADO ▸':'AVANÇAR ▸'}
+$('bk').onclick=()=>{i--;draw()};
+$('nx').onclick=()=>{i<9?(i++,draw()):end()};
+async function end(){const sc=[0,0,0,0,0];ans.forEach(p=>sc[p]++);const w=sc.indexOf(Math.max(...sc)),P=PR[w];
+show('out');$('who').textContent=`${name}, sua tela revela...`;$('gl').textContent=P.g;$('rt').textContent=P.n;$('qt').textContent='“'+P.f+'”';$('rd').textContent=P.d;
+$('bars').innerHTML=PR.map((p,k)=>`<div class="row"><span>${p.n}</span><span>${sc[k]*10}%</span></div><div class="bar"><i style="width:${sc[k]*10}%"></i></div>`).join('');
+document.body.style.setProperty('--rd',['#d4142a','#e0701a','#c4a017','#a0306a','#7a3acb'][w]);
+$('sv').textContent='Salvando…';
+const pont={};PR.forEach((p,k)=>pont[p.n]=sc[k]);
+const {error}=await sb.from('resultados').insert({identificador:name,respostas:ans.map((p,k)=>({q:k+1,texto:Q[k][p+1],perfil:PR[p].n})),pontuacao:pont,resultado:P.n,consentimento:true});
+$('sv').style.color=error?'#ff6070':'#9fd49f';$('sv').textContent=error?'Não foi possível salvar seu resultado agora.':'Resultado salvo com segurança.'}
+$('re').onclick=()=>{$('nm').value='';$('ok').checked=false;document.body.style.removeProperty('--rd');show('home')};
+</script></body></html>
