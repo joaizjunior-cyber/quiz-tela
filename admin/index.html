@@ -1,0 +1,42 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Painel · Quem pensa por trás da tela?</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet"><link rel="stylesheet" href="../style.css"></head><body>
+<main class="wide">
+<section id="lg" class="frame" style="max-width:520px;margin:40px auto"><div class="eye">🔒</div><h1>PAINEL</h1><p class="sub">Acesso restrito ao administrador.</p>
+<input id="em" type="email" placeholder="E-mail" autocomplete="username"><input id="pw" type="password" placeholder="Senha" autocomplete="current-password">
+<div class="err" id="er"></div><button class="btn" id="in">ENTRAR</button></section>
+<section id="pn" class="hide">
+<div class="frame"><h1>PAINEL <b>ADMIN</b></h1><div class="grid" id="st"></div>
+<h2>Distribuição por perfil</h2><div id="ch1" style="text-align:left"></div><h2>Participações por dia</h2><div id="ch2" style="text-align:left"></div></div>
+<div class="frame"><h2>Participantes</h2><div class="fl"><input id="fq" type="text" placeholder="Buscar identificador" style="width:200px"><select id="fp" style="width:200px"><option value="">Todos os perfis</option></select><input id="fd" type="date" style="width:170px"><input id="ft" type="date" style="width:170px"></div>
+<div class="fl"><button class="btn" id="cs">EXPORTAR CSV</button><button class="btn ghost" id="lo">SAIR</button></div><p class="ans" id="ci"></p><div class="tw"><table><thead><tr><th>Data</th><th>Identificador</th><th>Resultado</th><th>Pontos</th><th>Respostas</th><th></th></tr></thead><tbody id="tb"></tbody></table></div></div>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="../config.js"></script><script src="../decor.js"></script>
+<script>
+const $=i=>document.getElementById(i),sb=supabase.createClient(CFG.url,CFG.key);let D=[];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NM=['Aluno Pensante','Aluno Copia e Cola','Aluno Ajudinha','Aluno que Só Lê','Aluno Meio a Meio'];
+NM.forEach(n=>$('fp').insertAdjacentHTML('beforeend',`<option>${n}</option>`));
+async function boot(){const{data:{session}}=await sb.auth.getSession();if(!session){$('lg').classList.remove('hide');$('pn').classList.add('hide');return}
+const{data,error}=await sb.from('resultados').select('*').order('criado_em',{ascending:false});
+if(error){$('er').textContent='Sem permissão: esta conta não é a do administrador.';await sb.auth.signOut();$('lg').classList.remove('hide');return}
+D=data;$('lg').classList.add('hide');$('pn').classList.remove('hide');draw()}
+$('in').onclick=async()=>{$('er').textContent='';const{error}=await sb.auth.signInWithPassword({email:$('em').value.trim(),password:$('pw').value});$('pw').value='';error?$('er').textContent='E-mail ou senha inválidos.':boot()};
+$('lo').onclick=async()=>{await sb.auth.signOut();D=[];boot()};
+const day=r=>r.criado_em.slice(0,10);
+function flt(){const q=$('fq').value.toLowerCase(),p=$('fp').value,a=$('fd').value,b=$('ft').value;return D.filter(r=>(!q||r.identificador.toLowerCase().includes(q))&&(!p||r.resultado==p)&&(!a||day(r)>=a)&&(!b||day(r)<=b))}
+function draw(){const L=flt(),n=L.length,c={};NM.forEach(x=>c[x]=0);L.forEach(r=>c[r.resultado]=(c[r.resultado]||0)+1);
+const top=NM.reduce((a,b)=>c[b]>c[a]?b:a,NM[0]);
+$('st').innerHTML=`<div class="card"><b>${D.length}</b>total geral</div><div class="card"><b>${n}</b>no filtro</div><div class="card"><b style="font-size:18px">${n?esc(top):'—'}</b>perfil predominante</div>`;
+$('ch1').innerHTML=NM.map(x=>`<div class="row"><span>${x}</span><span>${c[x]} (${n?Math.round(c[x]/n*100):0}%)</span></div><div class="bar"><i style="width:${n?c[x]/n*100:0}%"></i></div>`).join('');
+const d={};L.forEach(r=>d[day(r)]=(d[day(r)]||0)+1);const ks=Object.keys(d).sort(),mx=Math.max(1,...Object.values(d));
+$('ch2').innerHTML=ks.map(k=>`<div class="row"><span>${k}</span><span>${d[k]}</span></div><div class="bar"><i style="width:${d[k]/mx*100}%"></i></div>`).join('')||'<p class="ans">Sem dados.</p>';
+$('tb').innerHTML=L.map(r=>`<tr><td>${new Date(r.criado_em).toLocaleString('pt-BR')}</td><td>${esc(r.identificador)}</td><td>${esc(r.resultado)}</td><td class="ans">${NM.map((x,k)=>(r.pontuacao[x]||0)).join(' · ')}</td><td><details><summary>ver</summary><div class="ans">${r.respostas.map(a=>`${a.q}. ${esc(a.texto)} <i>(${esc(a.perfil)})</i>`).join('<br>')}</div></details></td><td><button class="btn ghost" data-id="${r.id}" style="padding:4px 10px;margin:0">🗑</button></td></tr>`).join('');
+$('ci').textContent='Pontos na ordem: '+NM.join(' · ')}
+['fq','fp','fd','ft'].forEach(i=>$(i).oninput=draw);
+$('tb').onclick=async e=>{const id=e.target.dataset.id;if(!id||!confirm('Excluir este registro definitivamente?'))return;const{error}=await sb.from('resultados').delete().eq('id',id);if(!error){D=D.filter(r=>r.id!=id);draw()}};
+$('cs').onclick=()=>{const q=v=>{v=String(v??'');if(/^[=+\-@\t\r]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+const h=['data','identificador','resultado',...NM.map(n=>'pts '+n),...Array.from({length:10},(_,k)=>'p'+(k+1))];
+const rows=flt().map(r=>[r.criado_em,r.identificador,r.resultado,...NM.map(n=>r.pontuacao[n]||0),...r.respostas.map(a=>a.perfil)].map(q).join(','));
+const u=URL.createObjectURL(new Blob(['\ufeff'+[h.map(q).join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=u;a.download='resultados.csv';a.click();URL.revokeObjectURL(u)};
+boot();
+</script></body></html>
